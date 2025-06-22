@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.exampleApi.employee_management.config.JwtHelper;
 import com.exampleApi.employee_management.dtos.LoginRequest;
-import com.exampleApi.employee_management.dtos.SignUpRequest;
+import com.exampleApi.employee_management.dtos.SignupRequest;
 import com.exampleApi.employee_management.entities.Employee;
 import com.exampleApi.employee_management.entities.UserAccount;
 import com.exampleApi.employee_management.repositories.EmployeeRepo;
@@ -36,18 +36,23 @@ public class AuthService {
     @Autowired
     private JwtHelper jwtHelper;
 
-    public void signup(SignUpRequest signUpRequest) {
+    public void signup(SignupRequest signupRequest, String token) {
+        Employee employee = employeeRepo.findOneByAccountCreationToken(token)
+                .orElseThrow(() -> CustomResponseException.ResourceNotFound("Invalid token"));
 
-        Employee employee = employeeRepo.findById(signUpRequest.employeeId())
-                .orElseThrow(() -> CustomResponseException
-                        .ResourceNotFound("Employee not found with ID: " + signUpRequest.employeeId()));
+        if (employee.isVerified()) {
+            throw CustomResponseException.BadRequest("Account already created");
+        }
 
         UserAccount account = new UserAccount();
-        account.setUsername(signUpRequest.username());
-        account.setPassword(passwordEncoder.encode(signUpRequest.password()));
+        account.setUsername(signupRequest.username());
+        account.setPassword(passwordEncoder.encode(signupRequest.password()));
         account.setEmployee(employee);
-
         userAccountRepo.save(account);
+
+        employee.setVerified(true);
+        employee.setAccountCreationToken(null);
+        employeeRepo.save(employee);
     }
 
     public String login(LoginRequest loginRequest) {
