@@ -30,7 +30,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Autowired
     private EmailService emailService;
 
-
     @PreAuthorize("@securityUtils.isOwner(#employeeId)")
     public Employee findOne(UUID employeeId) {
         Employee employee = employeeRepo.findById(employeeId)
@@ -64,7 +63,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         return existEmployee;
     }
 
-
     @Transactional
     public Employee createOne(EmployeeCreate employeeCreate) {
         Employee employee = new Employee();
@@ -72,23 +70,30 @@ public class EmployeeServiceImpl implements EmployeeService {
         Department department = departmentRepo.findById(employeeCreate.departmentId())
                 .orElseThrow(() -> CustomResponseException
                         .ResourceNotFound("Department with ID: " + employeeCreate.departmentId() + " not found"));
-                        
+
         String token = UUID.randomUUID().toString();
-        employee.setVerified(false);
-        employee.setAccountCreationToken(token);
 
-        employee.setFirstName(employeeCreate.firstName());
-        employee.setLastName(employeeCreate.lastName());
-        employee.setPosition(employeeCreate.position());
-        employee.setPhoneNumber(employeeCreate.phoneNumber());
-        employee.setHireDate(employeeCreate.hireDate());
-        employee.setEmail(employeeCreate.email());
-        employee.setDepartment(department);
+        try {
 
-        employeeRepo.save(employee);
+            employee.setVerified(false);
+            employee.setAccountCreationToken(token);
 
-        emailService.sendAccountCreationEmail(employeeCreate.email(), token);
+            employee.setFirstName(employeeCreate.firstName());
+            employee.setLastName(employeeCreate.lastName());
+            employee.setPosition(employeeCreate.position());
+            employee.setPhoneNumber(employeeCreate.phoneNumber());
+            employee.setHireDate(employeeCreate.hireDate());
+            employee.setEmail(employeeCreate.email());
+            employee.setDepartment(department);
 
-        return employee;
+            employeeRepo.save(employee);
+
+            emailService.sendAccountCreationEmail(employeeCreate.email(), token);
+
+            return employee;
+
+        } catch (Exception e) {
+            throw CustomResponseException.BadRequest("Failed to create employee");
+        }
     }
 }

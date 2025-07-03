@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.exampleApi.employee_management.dtos.LoginRequest;
-import com.exampleApi.employee_management.dtos.SignupRequest;
+import com.exampleApi.employee_management.dtos.SignUpRequest;
 import com.exampleApi.employee_management.services.AuthService;
 import com.exampleApi.employee_management.shared.GlobalResponse;
 
@@ -34,11 +34,10 @@ public class AuthController {
 
     @PostMapping("/singup")
     public ResponseEntity<GlobalResponse<String>> signup(
-            @RequestBody SignupRequest signupRequest,
+            @RequestBody SignUpRequest signupRequest,
             @RequestParam String token) {
 
-        System.out.println("Received token: " + token);
-        // authService.signup(signupRequest, token);
+        authService.signup(signupRequest, token);
         return new ResponseEntity<>(new GlobalResponse<>("Signed Up"), HttpStatus.CREATED);
     }
 

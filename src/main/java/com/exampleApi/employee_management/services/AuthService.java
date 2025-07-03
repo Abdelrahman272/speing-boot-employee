@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.exampleApi.employee_management.config.JwtHelper;
 import com.exampleApi.employee_management.dtos.LoginRequest;
-import com.exampleApi.employee_management.dtos.SignupRequest;
+import com.exampleApi.employee_management.dtos.SignUpRequest;
 import com.exampleApi.employee_management.entities.Employee;
 import com.exampleApi.employee_management.entities.UserAccount;
 import com.exampleApi.employee_management.repositories.EmployeeRepo;
@@ -36,7 +36,7 @@ public class AuthService {
     @Autowired
     private JwtHelper jwtHelper;
 
-    public void signup(SignupRequest signupRequest, String token) {
+    public void signup(SignUpRequest signupRequest, String token) {
         Employee employee = employeeRepo.findOneByAccountCreationToken(token)
                 .orElseThrow(() -> CustomResponseException.ResourceNotFound("Invalid token"));
 
