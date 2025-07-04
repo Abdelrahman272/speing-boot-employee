@@ -3,6 +3,7 @@ package com.exampleApi.employee_management.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.exampleApi.employee_management.dtos.LoginRequest;
+import com.exampleApi.employee_management.dtos.ResetPasswordRequest;
 import com.exampleApi.employee_management.dtos.SignUpRequest;
 import com.exampleApi.employee_management.services.AuthService;
 import com.exampleApi.employee_management.shared.GlobalResponse;
@@ -41,4 +43,17 @@ public class AuthController {
         return new ResponseEntity<>(new GlobalResponse<>("Signed Up"), HttpStatus.CREATED);
     }
 
+    @PostMapping("/forgot-password/{username}")
+    public ResponseEntity<GlobalResponse<String>> forgotPassword(@PathVariable String username) {
+
+        authService.initiatePasswordRest(username);
+        return new ResponseEntity<>(new GlobalResponse<>("Password reset email sent!"), HttpStatus.CREATED);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<GlobalResponse<String>> resetPassword(
+            @RequestBody ResetPasswordRequest resetPasswordRequest) {
+        authService.resetPassword(resetPasswordRequest);
+        return new ResponseEntity<>(new GlobalResponse<>("Password reset successfully!"), HttpStatus.CREATED);
+    }
 }
