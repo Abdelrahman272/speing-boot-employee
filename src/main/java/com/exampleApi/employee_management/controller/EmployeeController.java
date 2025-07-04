@@ -7,16 +7,19 @@ import com.exampleApi.employee_management.abstracts.LeaveRequestService;
 import com.exampleApi.employee_management.dtos.EmployeeCreate;
 import com.exampleApi.employee_management.dtos.EmployeeUpdate;
 import com.exampleApi.employee_management.dtos.LeaveRequestCreate;
+import com.exampleApi.employee_management.dtos.PaginatedResponse;
 import com.exampleApi.employee_management.entities.Employee;
 import com.exampleApi.employee_management.entities.LeaveRequest;
 import com.exampleApi.employee_management.shared.GlobalResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequestMapping("/employees")
@@ -38,11 +42,27 @@ public class EmployeeController {
     private LeaveRequestService leaveRequestService;
 
     @GetMapping
-    public ResponseEntity<GlobalResponse<List<Employee>>> findAll() {
+    public ResponseEntity<GlobalResponse<PaginatedResponse<Employee>>> findAll(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "3") int size,
+            HttpServletRequest request) {
+        int zeroBasedPage = page - 1;
+        Page<Employee> employees = employeeService.findAll(zeroBasedPage, size);
 
-        List<Employee> employees = employeeService.findAll();
+        String baseUrl = request.getRequestURL().toString();
+        String nextUrl = employees.hasNext() ? String.format("%s?page=%d&size=%d", baseUrl, page + 1, size) : null;
+        String prevUrl = employees.hasPrevious() ? String.format("%s?page=%d&size=%d", baseUrl, page - 1, size) : null;
 
-        return new ResponseEntity<>(new GlobalResponse<>(employees), HttpStatus.OK);
+        var paginatedResponse = new PaginatedResponse<Employee>(
+                employees.getContent(),
+                employees.getNumber(),
+                employees.getTotalPages(),
+                employees.getTotalElements(),
+                employees.hasNext(),
+                employees.hasPrevious(),
+                nextUrl,
+                prevUrl);
+        return new ResponseEntity<>(new GlobalResponse<>(paginatedResponse), HttpStatus.OK);
     }
 
     @GetMapping("/{employeeId}")
@@ -97,5 +117,5 @@ public class EmployeeController {
 
         return new ResponseEntity<>(new GlobalResponse<>(leaveRequests), HttpStatus.OK);
     }
-    
+
 }
