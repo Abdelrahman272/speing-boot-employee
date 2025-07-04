@@ -1,10 +1,12 @@
 package com.exampleApi.employee_management.services;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +41,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employee;
     }
 
-    public List<Employee> findAll() {
-        return employeeRepo.findAll();
+    public Page<Employee> findAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return employeeRepo.findAll(pageable);
     }
+
 
     public void deleteOne(UUID employeeId) {
         Optional<Employee> employee = employeeRepo.findById(employeeId);
